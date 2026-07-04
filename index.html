@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TWOSE Exhibit Status</title>
+    <link rel="icon" type="image/png" href="images/twoselogo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="font-sans min-h-screen pb-12" x-data="appState()" @popstate.window="handleBrowserNavigation($event)">
+
+	<div class="blob-extra-1"></div>
+	<div class="blob-extra-2"></div>
+	<div class="blob-top-right"></div>
+	<div class="blob-bottom-left"></div>
+
+	<div x-show="!isLoggedIn" class="fixed inset-0 z-[200] bg-slate-900 flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">
+        <img src="images/castle.png" alt="castle">
+        
+        <h2 class="text-2xl font-black text-slate-800 mb-6 uppercase">Sign In</h2>
+        
+        <select x-model="selectedProfile" class="w-full p-3 border rounded-xl mb-4 font-bold">
+            <option value="">Select your role...</option>
+            <option value="gallery">Gallery Staff</option>
+            <option value="technician">Technician</option>
+        </select>
+
+            <input x-show="selectedProfile === 'technician'" 
+                   x-model="password" type="password" @keydown.enter="login()" placeholder="Enter Password" 
+                   class="w-full p-3 border rounded-xl mb-4 font-mono">
+
+            <button @click="login()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-black hover:bg-indigo-700">
+                ENTER
+            </button>
+            <p x-text="error" class="text-rose-500 text-xs mt-2 font-bold"></p>
+        </div>
+    </div>
+
+
+<div x-show="currentView !== 'swab'">
+    <header class="mt-0 border-b-2 border-indigo-500/20 bg-gradient-to-r from-slate-900 to-indigo-950 sticky top-0 z-50 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <button 
+                    x-show="currentView !== 'home'" 
+                    @click="currentView = 'home'"
+                    class="bg-indigo-900/60 hover:bg-indigo-800 text-xs md:text-sm font-bold px-4 py-2 rounded-lg border border-indigo-400/40 text-indigo-200 transition shadow-sm"
+                >
+                    ← BACK
+                </button>
+     <div class="flex items-center space-x-3 cursor-pointer" @click="goHome()">
+    <img src="images/twoselogo.png" alt="Logo" class="h-10 w-auto">
+    
+    <h1 class="text-base md:text-xl font-black tracking-wider text-white uppercase">
+        TWOSE <span class="text-indigo-400">Exhibit Status</span>
+    </h1>
+</div>
+            </div>
+
+            <button 
+                @click="toggleProfile()"
+                class="text-[10px] md:text-xs font-mono bg-slate-800 hover:bg-slate-750 border border-slate-700 px-3 py-1.5 rounded-md text-slate-300 transition-all cursor-pointer flex items-center space-x-1.5 shadow-inner"
+                title="Click to switch profile mode"
+            >
+                <span class="text-slate-400 font-bold">STATION:</span>
+                <span x-text="currentProfile === 'technician' ? 'TECHNICIAN' : 'GALLERY STAFF'"
+                      :class="currentProfile === 'technician' ? 'text-cyan-400' : 'text-amber-400'"
+                      class="font-bold uppercase tracking-wider">
+                </span>
+            </button>
+        </div>
+    </header>
+</div>
+    <main class="max-w-6xl mx-auto px-4 pt-0 pb-8">
+
+
+<section x-show="currentView === 'swab'" class="fixed inset-0 w-full h-screen overflow-y-auto lg:overflow-hidden bg-transparent">
+    
+    <!-- Map Background -->
+    <img src="images/map.png" class="absolute inset-0 w-full h-full object-cover z-0" alt="Map">
+
+    <!-- Header Section -->
+    <!-- Header Section: Switched to grid for perfect separation -->
+<div class="relative z-20 w-full p-6 grid grid-cols-[auto_1fr_auto] items-center gap-4">
+    
+    <!-- Left: Back Button -->
+    <button @click="currentView = 'home'" 
+            class="font-['Pirata_One'] bg-amber-100/80 hover:bg-amber-200 text-amber-950 text-xl font-bold px-6 py-3 rounded-lg border-2 border-amber-900 shadow-md transition-all whitespace-nowrap">
+        ← BACK
+    </button>
+    
+    <!-- Center: Title -->
+    <h1 class="text-center text-4xl md:text-7xl font-black uppercase tracking-widest text-amber-950 drop-shadow-[0_2px_2px_rgba(255,255,255,0.5)] leading-tight" 
+        style="font-family: 'Pirata One', cursive;">
+        Swab the Deck
+    </h1>
+    
+    <!-- Right: Spacer to keep the title perfectly centered -->
+    <div class="w-[100px] lg:w-[130px]"></div>
+</div>
+
+    <!-- Main Content -->
+    <div class="relative z-20 w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-6 p-4">
+        
+        <!-- The Captain's Scroll: Responsive & Full-Content -->
+        <!-- Added max-w-[600px] and w-[90vw] for larger mobile size -->
+        <div class="relative w-[90vw] max-w-[600px] flex-shrink-0">
+            <img src="images/scroll.png" class="w-full h-auto" alt="Scroll">
+            
+            <!-- NEW: This flex wrapper centers text and forces it to fit within the scroll -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <div class="text-amber-950 font-['Pirata_One'] w-[65%] max-h-[70%] overflow-y-auto">
+                    <h2 class="text-[clamp(16px, 5vw, 32px)] font-black mb-2 md:mb-4 border-b-4 border-amber-900 pb-1 text-center uppercase">
+                        The Captain's Scroll
+                    </h2>
+                    <ul class="list-disc pl-4 space-y-1 md:space-y-3 text-[clamp(10px, 3.2vw, 18px)] font-bold text-justify">
+                        <li>Belay the flow and yank the bung to bleed the basin dry!</li>
+                        <li>Scrub the plastic gunwales clean, then douse 'em with the deck hose and blast the floor of the bilge 'til she shines!</li>
+                        <li>Take a fresh-water spray to the strainer and scour the grime away!</li>
+                        <li>Cast a heavy dose of the purifying salts into the deep!</li>
+                        <li>Bring the basin back to life with a fresh draught from the fountain!</li>
+                        <li>Set yer course for the 'Swab the Deck' charts and give this here wheel a hearty spin!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- The Wheel -->
+        <div class="relative w-[80vw] max-w-[450px] aspect-square transition-transform duration-[3000ms]" 
+             :class="{'rotate-[720deg]': isRotating}" 
+             @click="spinWheel()">
+            <img src="images/wheel.png" class="w-full h-full">
+            <template x-for="(tech, index) in technicians" :key="tech.name">
+                <div class="absolute w-[25%] flex flex-col items-center gap-2 text-center" :class="getPositionClass(index)">
+                    <div class="px-3 py-1 rounded-lg bg-amber-100/80 backdrop-blur-sm border-2 border-amber-900 shadow-md">
+                        <div class="flex flex-col items-center font-['Pirata_One'] text-amber-950 uppercase leading-tight">
+                            <span class="text-[12px] md:text-2xl font-black" x-text="index === 0 ? 'Captain ' + tech.name : tech.name"></span>
+                            <span class="text-[10px] md:text-lg font-bold text-amber-900" x-show="index !== 0" x-text="index === 1 ? 'Up Next' : 'Following'"></span>
+                        </div>
+                    </div>
+                    <img :src="tech.img" :alt="tech.name" class="w-full rounded-full border-[2px] md:border-[4px] border-amber-900 shadow-xl">
+                </div>
+            </template>
+        </div>
+    </div>
+</section>       
+        <!-- Main Gallery Selection View -->
+<!-- Gallery Selection View -->
+<div x-show="currentView === 'home'" class="max-w-6xl mx-auto px-4 py-12">
+
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-8">
+       <template x-for="gallery in galleries" :key="gallery.id">
+
+    <button 
+        @click="selectGallery(gallery)"
+        class="card-3d flex flex-col items-center p-4 rounded-3xl bg-white hover:scale-105 transition-transform duration-300 w-full relative"
+    >
+        <div class="absolute top-3 right-3 flex gap-1">
+            <template x-for="status in getGalleryStatusList(gallery)" :key="status.type">
+                <div 
+                    class="w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black text-white shadow-sm"
+                    :class="{
+                        'bg-amber-500': status.type === 'working',
+                        'bg-rose-500': status.type === 'problem'
+                    }"
+                >
+                    <span x-text="status.count"></span>
+                </div>
+            </template>
+        </div>
+
+        <img :src="gallery.icon" :alt="gallery.name" class="w-24 h-24 object-contain">
+        
+        <span class="mt-4 text-indigo-500 fun-font text-center w-full">
+            <span x-text="gallery.name"></span>
+        </span>
+    </button>
+</template>
+        </div>
+    </div>
+        <div x-show="currentView === 'gallery'" x-cloak>
+            <div class="mb-6 border-b-2 border-indigo-100 pb-4 flex items-center space-x-3">
+                <div class="w-2 h-8 bg-indigo-600 rounded-full"></div>
+                <h2 class="text-2xl md:text-3xl font-black tracking-tight text-slate-800 uppercase mt-1" x-text="selectedGallery?.name"></h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <template x-for="exhibit in selectedGallery?.exhibits" :key="exhibit.name">
+                    <button 
+                        @click="selectExhibit(exhibit)"
+                        :class="{
+                            'status-clear': exhibit.status === 'clear',
+                            'status-problem': exhibit.status === 'problem',
+                            'status-working': exhibit.status === 'working'
+                        }"
+                        class="p-5 rounded-xl text-left transition-all duration-200 flex justify-between items-center group shadow-md hover:shadow-lg font-semibold"
+                    >
+                        <span class="text-base tracking-wide font-extrabold" x-text="exhibit.name"></span>
+                        
+                        <span :class="{
+                            'badge-clear': exhibit.status === 'clear',
+                            'badge-problem': exhibit.status === 'problem',
+                            'badge-working': exhibit.status === 'working'
+                        }" class="text-[10px] uppercase font-mono tracking-widest px-3 py-1 rounded-md shrink-0 font-black shadow-sm"
+                           x-text="exhibit.status === 'clear' ? 'OPERATIONAL' : (exhibit.status === 'problem' ? 'OUT OF ORDER' : 'UNDER MAINTENANCE')">
+                        </span>
+                    </button>
+                </template>
+            </div>
+        </div>
+	<div x-show="currentView === 'home'">
+	<section x-show="currentProfile === 'technician'" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-8">
+    <div class="flex items-center justify-between w-full mb-6">
+    
+    <h2 class="text-3xl font-bold">Maintenance Schedule</h2>
+    
+    <button @click="setView('swab')" 
+            style="font-family: 'Pirata One', cursive;"
+            class="px-5 py-2 bg-slate-800 text-white text-xl tracking-wider rounded-lg hover:bg-black transition shadow-lg">
+        Swab the Deck
+    </button>
+</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <div>
+            <div class="flex justify-between items-center mb-3 border-b border-blue-50 pb-1">
+                <h4 class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Weekly Tasks</h4>
+                <button @click="resetTasks(schedule.weekly)" class="text-[9px] font-bold text-blue-400 hover:text-blue-600 uppercase">Reset</button>
+            </div>
+            <div class="space-y-2">
+                <template x-for="item in getSortedTasks(schedule.weekly)" :key="item.id">
+                    <div @click="toggleTask(item)" class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col cursor-pointer hover:border-blue-200 transition">
+                        <span class="text-xs font-bold text-slate-700" x-text="item.assignedTo"></span>
+                        <span class="text-sm font-mono text-blue-600 font-medium" x-text="item.task"></span>
+                        <div x-show="item.checked" class="mt-2 pt-2 border-t border-blue-100">
+                            <span class="text-[11px] font-bold text-slate-800 uppercase tracking-wide">
+                                Completed by <span x-text="item.lastPerformedBy" class="text-blue-600 underline"></span>
+                            </span>
+                            <br>
+                            <span class="text-[10px] font-bold text-slate-400" x-text="new Date(item.lastChecked).toLocaleDateString()"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div>
+            <div class="flex justify-between items-center mb-3 border-b border-emerald-50 pb-1">
+                <h4 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Monthly Tasks</h4>
+                <button @click="resetTasks(schedule.monthly)" class="text-[9px] font-bold text-emerald-400 hover:text-emerald-600 uppercase">Reset</button>
+            </div>
+            <div class="space-y-2">
+                <template x-for="item in getSortedTasks(schedule.monthly)" :key="item.id">
+                    <div @click="toggleTask(item)" class="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 flex flex-col cursor-pointer hover:border-emerald-200 transition">
+                        <span class="text-xs font-bold text-slate-700" x-text="item.assignedTo"></span>
+                        <span class="text-sm font-mono text-emerald-700 font-medium" x-text="item.task"></span>
+                        <div x-show="item.checked" class="mt-2 pt-2 border-t border-emerald-100">
+                            <span class="text-[11px] font-bold text-slate-800 uppercase tracking-wide">
+                                Completed by <span x-text="item.lastPerformedBy" class="text-emerald-600 underline"></span>
+                            </span>
+                            <br>
+                            <span class="text-[10px] font-bold text-slate-400" x-text="new Date(item.lastChecked).toLocaleDateString()"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div>
+            <div class="flex justify-between items-center mb-3 border-b border-purple-50 pb-1">
+                <h4 class="text-[10px] font-bold text-purple-500 uppercase tracking-widest">Yearly Tasks</h4>
+                <button @click="resetTasks(schedule.yearly)" class="text-[9px] font-bold text-purple-400 hover:text-purple-600 uppercase">Reset</button>
+            </div>
+            <div class="space-y-2">
+                <template x-for="item in getSortedTasks(schedule.yearly)" :key="item.id">
+                    <div @click="toggleTask(item)" class="p-4 bg-purple-50/50 rounded-xl border border-purple-100 flex flex-col cursor-pointer hover:border-purple-200 transition">
+                        <span class="text-xs font-bold text-slate-700" x-text="item.assignedTo"></span>
+                        <span class="text-sm font-mono text-purple-700 font-medium" x-text="item.task"></span>
+                        <div x-show="item.checked" class="mt-2 pt-2 border-t border-purple-100">
+                            <span class="text-[11px] font-bold text-slate-800 uppercase tracking-wide">
+                                Completed by <span x-text="item.lastPerformedBy" class="text-purple-600 underline"></span>
+                            </span>
+                            <br>
+                            <span class="text-[10px] font-bold text-slate-400" x-text="new Date(item.lastChecked).toLocaleDateString()"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+    </div>
+</section>
+</div>
+        <div x-show="currentView === 'exhibit'" x-cloak class="max-w-3xl mx-auto">
+
+<div class="mb-6">
+        <img :src="selectedExhibit?.heroImage || 'images/default.png'" 
+             alt="Exhibit Photo" 
+             class="w-full h-64 object-cover rounded-2xl shadow-lg border border-indigo-100">
+    </div>
+	
+            <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-indigo-100 pb-4">
+                <div>
+                    <p class="text-xs text-indigo-600 font-mono font-bold uppercase tracking-widest" x-text="selectedGallery?.name"></p>
+                    <h2 class="text-3xl font-black uppercase text-slate-800 tracking-wide" x-text="selectedExhibit?.name"></h2>
+                </div>
+                
+                <div :class="{
+                    'bg-emerald-600 text-white border-emerald-700': selectedExhibit?.status === 'clear',
+                    'bg-rose-600 text-white border-rose-700': selectedExhibit?.status === 'problem',
+                    'bg-amber-500 text-white border-amber-600': selectedExhibit?.status === 'working'
+                }" class="px-5 py-2.5 border rounded-xl font-mono text-xs font-black text-center uppercase tracking-widest shadow-md"
+                   x-text="selectedExhibit?.status === 'clear' ? 'OPERATIONAL' : (selectedExhibit?.status === 'problem' ? 'OUT OF ORDER' : 'UNDER MAINTENANCE')">
+                </div>
+            </div>
+
+           <section 
+                x-show="currentProfile === 'technician' || (selectedExhibit?.techOverviewNote && selectedExhibit.techOverviewNote.trim() !== '') || (selectedExhibit?.exhibitImage)"
+                class="bg-gradient-to-br from-white to-indigo-50/20 border border-indigo-200 p-5 rounded-2xl shadow-md mb-6 flex flex-col md:flex-row gap-5"
+            >
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2 text-indigo-600 font-extrabold uppercase tracking-wider mb-2.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <h3 class="text-xs font-mono tracking-widest">Exhibit Notes</h3>
+                    </div>
+
+                    <div x-show="currentProfile !== 'technician'">
+                        <p class="text-sm text-slate-800 leading-relaxed font-mono bg-white border border-slate-200 rounded-xl p-3 min-h-[4rem] shadow-sm" 
+                           x-text="selectedExhibit?.techOverviewNote || 'No description notes recorded.'"></p>
+                    </div>
+
+                    <div x-show="currentProfile === 'technician'">
+                        <textarea 
+                            x-model="selectedExhibit.techOverviewNote"
+                            @input="saveNotesLocal()"
+                            rows="2"
+                            placeholder="Type an exhibit overview description here (saves automatically)..."
+                            class="w-full text-sm font-mono p-2.5 rounded-xl bg-white text-slate-900 border border-slate-200 focus:ring-2 focus:ring-indigo-500 shadow-inner"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div 
+                    x-show="currentProfile === 'technician' || (selectedExhibit && selectedExhibit.exhibitImage)" 
+                    class="w-full md:w-36 h-28 bg-indigo-50/50 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center text-center p-2 shrink-0 overflow-hidden relative group shadow-inner"
+                >
+                    <template x-if="selectedExhibit && selectedExhibit.exhibitImage">
+                        <div class="relative w-full h-full">
+                            <img :src="selectedExhibit.exhibitImage" @click="openLightbox(selectedExhibit.exhibitImage)" class="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90">
+                            
+                            <button 
+                                x-show="currentProfile === 'technician'"
+                                @click="selectedExhibit.exhibitImage = null"
+                                class="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5 shadow-sm hover:bg-rose-600 transition"
+                                title="Remove Photo"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
+                    
+                    <template x-if="currentProfile === 'technician' && (!selectedExhibit || !selectedExhibit.exhibitImage)">
+                        <div class="flex flex-col items-center text-indigo-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span class="text-[9px] uppercase font-mono tracking-wider font-bold">No Image Set</span>
+                        </div>
+                    </template>
+                    
+                    <div x-show="currentProfile === 'technician' && !selectedExhibit.exhibitImage" class="absolute inset-0 bg-indigo-950/90 opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer">
+                        <label class="text-[9px] font-mono text-cyan-400 font-bold uppercase cursor-pointer text-center px-1">
+                            Upload Photo
+                            <input type="file" accept="image/*" class="hidden" @change="uploadExhibitImage($event)">
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+           <section class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                <div class="flex items-center space-x-2 text-slate-700 font-bold uppercase tracking-widest mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <h3 class="text-sm font-black">Report an Issue</h3>
+                </div>
+                
+                <form @submit.prevent="submitIssue()">
+                    <div class="mb-4">
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1.5">Description</label>
+                        <textarea 
+                            x-model="issueText"
+                            rows="3" 
+                            required
+                            placeholder="What is happening with this exhibit?"
+                            class="w-full rounded-lg p-3 text-sm border-2 border-indigo-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-200 font-mono bg-indigo-50/30 text-slate-900 shadow-inner"
+                        ></textarea>
+<div class="mt-4">
+    <input type="text" x-model="reporterName" placeholder="Your Name (Required)" required
+           class="w-full p-2 border border-slate-200 rounded-lg text-sm">
+</div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex-1">
+                            <label class="cursor-pointer flex items-center space-x-2 text-xs font-mono text-slate-500 hover:text-indigo-600 transition">
+    <input type="file" multiple accept="image/*" class="hidden" @change="handleUploadedIssuePhoto($event)" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                </svg>
+                              <span x-text="uploadedIssuePhotos.length > 0 ? uploadedIssuePhotos.length + ' Photos Attached' : 'Attach Photos'"></span>
+                            </label>
+<div class="flex flex-wrap gap-2 mt-2">
+    <template x-for="(photo, index) in uploadedIssuePhotos" :key="index">
+        <div class="relative">
+            <img :src="photo" class="w-16 h-16 object-cover rounded">
+            <button @click="uploadedIssuePhotos.splice(index, 1)" class="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5">×</button>
+        </div>
+    </template>
+</div>
+                        </div>
+
+                        <button 
+                            type="submit"
+                            class="bg-slate-800 hover:bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest py-2 px-6 rounded-lg transition duration-200 shadow-md"
+                        >
+                            Submit
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-6 pt-6 border-t-2 border-indigo-50">
+    <h4 class="text-xs font-mono font-bold uppercase tracking-widest text-indigo-600 mb-3 flex items-center space-x-1.5">
+        <span>Active Issues Logged By Staff</span>
+        <span class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full font-black" 
+              x-text="selectedExhibit?.activeReports?.length || 0"></span>
+    </h4>
+    
+    <template x-if="selectedExhibit?.activeReports?.length > 0">
+        <template x-for="(report, index) in selectedExhibit.activeReports" :key="report.timestamp">
+            <div class="report-ticket p-4 mb-4 border border-slate-300 rounded-lg bg-slate-50">
+                <div class="flex justify-between text-sm text-slate-600 mb-2 border-b border-slate-200 pb-2">
+                    <span class="font-bold text-slate-900" x-text="report.reporterName"></span>
+                    <span x-text="report.reportDate"></span>
+                </div>
+                <p class="mb-4 text-slate-700 leading-relaxed" x-text="report.text"></p>
+                
+                <div class="flex flex-wrap gap-2">
+    <template x-for="(photo, index) in report.photos" :key="index">
+        <img :src="photo" 
+             class="w-24 h-24 object-cover rounded shadow-sm border border-slate-200 cursor-pointer"
+             @click="openLightbox(photo)"
+             alt="Issue evidence photo">
+    </template>
+</div>
+
+                <div class="mt-4">
+                    <button 
+                        x-show="currentProfile === 'technician'"
+                        @click="resolveIssue(index)"
+                        class="text-[10px] font-mono bg-emerald-600 text-white border border-emerald-700 px-3 py-1.5 rounded-md hover:bg-emerald-700 transition font-black shadow-sm"
+                    >
+                        Resolve & Remove
+                    </button>
+                </div>
+            </div>
+        </template>
+    </template>
+
+    <template x-if="!selectedExhibit?.activeReports || selectedExhibit.activeReports.length === 0">
+        <p class="text-xs text-slate-400 font-mono italic bg-slate-50 border border-slate-100 rounded-xl p-4 text-center shadow-inner">
+            No outstanding staff issues reported on this line item.
+        </p>
+    </template>
+</div>
+
+            <section class="bg-white border border-indigo-100 p-6 rounded-2xl shadow-md">
+                <div class="flex items-center space-x-2.5 text-indigo-600 font-bold uppercase tracking-wider mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782(0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                    <h3 class="text-xs font-mono tracking-widest">Technician Activity</h3>
+                </div>
+                
+                <div x-show="currentProfile !== 'technician'">
+                    <p class="text-sm text-slate-800 leading-relaxed font-mono bg-slate-50 border border-slate-200 rounded-xl p-4 min-h-[4rem] shadow-inner" 
+                       x-text="selectedExhibit?.techNotes || 'No historical maintenance notes recorded for this exhibit.'"></p>
+                </div>
+
+                <div x-show="currentProfile === 'technician'">
+                    <textarea 
+                        x-model="selectedExhibit.techNotes"
+                        @input="saveNotesLocal()"
+                        rows="4"
+                        placeholder="Type or modify historical tech maintenance logs here (saves automatically)..."
+                        class="w-full text-sm font-mono p-3 rounded-xl bg-white text-slate-900 border border-slate-200 focus:ring-2 focus:ring-indigo-500 shadow-inner"
+                    ></textarea>
+                </div>
+                
+                <div x-show="currentProfile === 'technician'" class="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                    <span class="text-[11px] font-mono uppercase text-slate-400 font-bold mr-2">Override Status:</span>
+                    <button @click="changeStatus('clear')" class="text-[10px] font-mono tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-md font-black transition shadow-sm">Operational (Clear)</button>
+<button @click="changeStatus('problem')" class="text-[10px] font-mono tracking-wider bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-md font-black transition shadow-sm">Out of Order</button>
+                    <button @click="changeStatus('working')" class="text-[10px] font-mono tracking-wider bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md font-black transition shadow-sm">Under Maintenance</button>
+                </div>
+                <div x-show="currentProfile === 'gallerystaff'" class="mt-4 pt-3 border-t border-slate-100 text-xs font-mono text-slate-400 font-medium italic">
+                    🔒 Status adjustments are locked. Maintenance tools are restricted to technicians.
+                </div>
+            </section>
+<section class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mt-6" x-data="{ historyOpen: false }">
+    <div @click="historyOpen = !historyOpen" class="flex items-center justify-between cursor-pointer">
+        <div class="flex items-center space-x-2 text-slate-700 font-bold uppercase tracking-widest">
+            <h3 class="text-sm font-black">Resolution History</h3>
+            <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-black" 
+                  x-text="selectedExhibit?.deletedReports?.length || 0"></span>
+        </div>
+        <svg class="w-5 h-5 text-slate-400 transition-transform" :class="{'rotate-180': historyOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </div>
+
+    <div x-show="historyOpen" x-cloak class="mt-4 pt-4 border-t border-slate-100 space-y-3 max-h-64 overflow-y-auto pr-2">
+        <template x-for="(report, index) in selectedExhibit?.deletedReports" :key="report.resolvedAt + index">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 opacity-80">
+                <p class="text-xs font-mono text-slate-600" x-text="report.text"></p>
+                <p class="text-[9px] font-mono text-slate-400 mt-1" x-text="'Resolved on: ' + report.resolvedAt"></p>
+            </div>
+        </template>
+        
+        <template x-if="!selectedExhibit?.deletedReports || selectedExhibit.deletedReports.length === 0">
+            <p class="text-xs text-slate-400 italic">No resolved history for this exhibit.</p>
+        </template>
+    </div>
+</section>        </div>
+
+    </main>
+
+    <div 
+        x-show="lightboxOpen" 
+        x-cloak 
+        @keydown.escape.window="lightboxOpen = false"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 transition-opacity duration-300"
+        @click="lightboxOpen = false"
+    >
+        <div class="relative max-w-4xl max-h-[85vh] flex flex-col items-center">
+            <button 
+                @click="lightboxOpen = false" 
+                class="absolute -top-12 right-0 text-white hover:text-indigo-400 text-sm font-mono tracking-widest font-black bg-slate-900/80 px-3 py-1 rounded-lg border border-slate-700 shadow-md"
+            >
+                CLOSE [ESC]
+            </button>
+            <img :src="lightboxImage" class="max-w-full max-h-[80vh] rounded-xl shadow-2xl border-2 border-indigo-500/20 object-contain" @click.stop>
+        </div>
+    </div>
+	<div x-show="currentView !== 'swab'">
+	<footer class="mt-auto py-8 text-center text-slate-400 font-mono text-[13px] uppercase tracking-widest opacity-85">
+        <p>2026 TWOSE Exhibit Status | Developed and Maintained by Tristan Fortier</p>
+        </footer>
+	</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
